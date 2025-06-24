@@ -123,25 +123,24 @@ private static void verifyModel(UserModel user) throws ValidatorException {
     }
 }
 
-    private static UserModel requestToUpdate(){
-        System.out.println("Informe o id do usuário: ");
-        scanner.nextLong();
-        System.out.println("Digite o nome do usuário: ");
-        var name = scanner.next();
-        System.out.println("Digite o email do usuário: ");
-        var email = scanner.next();     
-        System.out.println("Digite a data de nascimento do usuário (dd/MM/yyyy): ");
-        var birthdayString = scanner.next();
-        var formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        var birthday = java.time.LocalDate.parse(birthdayString, formatter);
-        try {
-            return validateInputs(0, name, email, birthday);
-        } catch (ValidatorException ex) {
-            System.out.println(ex.getMessage());
-            return null;
-        }
+private static UserModel requestToUpdate(){
+    System.out.println("Informe o id do usuário: ");
+    var id = scanner.nextLong();
+    System.out.println("Digite o nome do usuário: ");
+    var name = scanner.next();
+    System.out.println("Digite o email do usuário: ");
+    var email = scanner.next();     
+    System.out.println("Digite a data de nascimento do usuário (dd/MM/yyyy): ");
+    var birthdayString = scanner.next();
+    var formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    var birthday = java.time.LocalDate.parse(birthdayString, formatter);
+    try {
+        return validateInputs(id, name, email, birthday);
+    } catch (ValidatorException ex) {
+        System.out.println(ex.getMessage());
+        return null;
     }
-
+}
     private static long requestId() {
         System.out.println("Informe o id do usuário: ");
         return scanner.nextLong();
