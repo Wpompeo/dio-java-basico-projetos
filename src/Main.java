@@ -1,6 +1,10 @@
 import br.com.dio.dao.UserDAO;
+import br.com.dio.exception.EmptyStorageException;
+import br.com.dio.exception.UserNotFoundException;
+import br.com.dio.exception.ValidatorException;
 import br.com.dio.model.MenuOption;
 import br.com.dio.model.UserModel;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 public class Main {
@@ -25,18 +29,36 @@ public class Main {
                     System.out.printf("Usuário cadastrado %s%n", user);
                 }
                 case UPDATE -> {
-                    var user = dao.update(requestToUpdate());
-                    System.out.printf("Usuário atualizado %s%n", user);
+                    try{
+                        var user = dao.update(requestToUpdate());
+                        System.out.printf("Usuário atualizado %s%n", user);
+                    } catch (UserNotFoundException | EmptyStorageException ex) {
+                        System.out.println(ex.getMessage());
+                        continue;
+                    }
+                   
                 }
                 case DELETE -> {
-                    dao.delete(requestId());
-                    System.out.println("Usuario deletado com sucesso.");
+                    try {
+                        dao.delete(requestId());
+                        System.out.println("Usuário deletado com sucesso.");
+                    } catch (UserNotFoundException | EmptyStorageException ex) {
+                        System.out.println(ex.getMessage());
+                    } finally {
+                        System.out.println("=============================");
+                    }
+                    
                 }
                 case FIND_BY_ID -> {
-                    var id = requestId();
-                    var users = dao.findById(id);
-                    System.out.printf("Usuário com id %s%n", id);
-                    System.out.println(users);
+                    try {
+                        var id = requestId();
+                        var users = dao.findById(id);
+                        System.out.printf("Usuário com id %s%n", id);
+                        System.out.println(users);
+                    } catch (UserNotFoundException | EmptyStorageException ex) {
+                        System.out.println(ex.getMessage());
+                    }
+                   
                 }
                 case FIND_ALL -> {
                     var users = dao.findAll();
@@ -46,7 +68,10 @@ public class Main {
                      System.out.println("-----------FIM--------------");
                 }
                 case EXIT -> {
+                    System.out.println("=============================");
+                    System.out.println("Obrigado por utilizar nosso sistema!");
                     System.out.println("Saindo do sistema...");
+                     System.out.println("=============================");
                     System.exit(0);
                 }
             }
@@ -57,26 +82,50 @@ public class Main {
             System.out.println("4 - Listar usuários por id");
             System.out.println("5 - Listar todos os usuários");
             System.out.println("6 - Sair");
-            userInput = scanner.nextInt();
         }
     }
 
     private static UserModel requestToSave(){
         System.out.println("Digite o nome do usuário: ");
-        var name = scanner.nextLine();
+        var name = scanner.next();
         System.out.println("Digite o email do usuário: ");
-        var email = scanner.nextLine();
+        var email = scanner.next();
         System.out.println("Digite a data de nascimento do usuário (dd/MM/yyyy): ");
         var birthdayString = scanner.next();
         var formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        var birthday = java.time.LocalDate.parse(birthdayString, formatter);
-        var birthdayOffset = birthday.atStartOfDay(java.time.ZoneOffset.UTC).toOffsetDateTime();
-        return new UserModel(0, name, email, birthdayOffset);        
+        var birthday = LocalDate.parse(birthdayString, formatter);    
+        try {
+            return validateInputs(0, name, email, birthday);
+        } catch (ValidatorException ex) {
+            System.out.println(ex.getMessage());
+            return null;
+        }
+       
     }
+
+private static UserModel validateInputs(final long id, final String name,
+                           final String email, final LocalDate birthday)throws ValidatorException {
+    var user = new UserModel(0, name, email, birthday); 
+    verifyModel(user);    
+    return user;                          
+                            
+}
+
+private static void verifyModel(UserModel user) throws ValidatorException {
+    if (user.getName() == null || user.getName().isEmpty()) {
+        throw new ValidatorException("Nome do usuário não pode ser vazio.");
+    }
+    if (user.getEmail() == null || user.getEmail().isEmpty()) {
+        throw new ValidatorException("Email do usuário não pode ser vazio.");
+    }
+    if (user.getBirthday() == null) {
+        throw new ValidatorException("Data de nascimento do usuário não pode ser vazia.");
+    }
+}
 
     private static UserModel requestToUpdate(){
         System.out.println("Informe o id do usuário: ");
-        var id = scanner.nextLong();
+        scanner.nextLong();
         System.out.println("Digite o nome do usuário: ");
         var name = scanner.next();
         System.out.println("Digite o email do usuário: ");
@@ -85,8 +134,12 @@ public class Main {
         var birthdayString = scanner.next();
         var formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
         var birthday = java.time.LocalDate.parse(birthdayString, formatter);
-        var birthdayOffset = birthday.atStartOfDay(java.time.ZoneOffset.UTC).toOffsetDateTime();
-        return new UserModel(id, name, email, birthdayOffset);
+        try {
+            return validateInputs(0, name, email, birthday);
+        } catch (ValidatorException ex) {
+            System.out.println(ex.getMessage());
+            return null;
+        }
     }
 
     private static long requestId() {
