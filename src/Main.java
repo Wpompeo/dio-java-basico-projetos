@@ -110,7 +110,6 @@ private static UserModel validateInputs(final long id, final String name,
     return user;                          
                             
 }
-
 private static void verifyModel(UserModel user) throws ValidatorException {
     if (user.getName() == null || user.getName().isEmpty()) {
         throw new ValidatorException("Nome do usuário não pode ser vazio.");
@@ -122,7 +121,6 @@ private static void verifyModel(UserModel user) throws ValidatorException {
         throw new ValidatorException("Data de nascimento do usuário não pode ser vazia.");
     }
 }
-
 private static UserModel requestToUpdate(){
     System.out.println("Informe o id do usuário: ");
     var id = scanner.nextLong();
